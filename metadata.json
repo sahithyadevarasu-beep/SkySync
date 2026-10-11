@@ -1,0 +1,10 @@
+{
+  "name": "SkySync",
+  "description": "Your sky, synced. A modern full-stack weather platform with personalized forecasts, real-time geolocation weather, and search history.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
