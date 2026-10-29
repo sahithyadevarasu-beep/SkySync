@@ -1,0 +1,73 @@
+/* ☁️ SkySync Custom Styles */
+
+:root {
+  --sky-blue: #8eaff2;
+  --sky-dark: #263451;
+  --sky-light: #eef6ff;
+  --sky-white: #ffffff;
+  --sky-muted: #71809b;
+}
+
+/* Main app */
+.sky-app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef6ff, #f8fbff);
+  color: var(--sky-dark);
+}
+
+/* Cards */
+.sky-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(122, 167, 255, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(60, 100, 160, 0.1);
+  backdrop-filter: blur(15px);
+  transition: 0.25s ease;
+}
+
+.sky-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(60, 100, 160, 0.15);
+}
+
+/* Buttons */
+.sky-button {
+  background: var(--sky-blue);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.sky-button:hover {
+  background: #5f8fee;
+  transform: translateY(-2px);
+}
+
+/* Search/input */
+.sky-input {
+  border: 1px solid #dce6f5;
+  border-radius: 14px;
+  padding: 12px 16px;
+  outline: none;
+  font-family: inherit;
+}
+
+.sky-input:focus {
+  border-color: var(--sky-blue);
+  box-shadow: 0 0 0 3px rgba(122, 167, 255, 0.15);
+}
+
+/* Titles */
+.sky-title {
+  color: var(--sky-dark);
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.sky-muted {
+  color: var(--sky-muted);
+}
