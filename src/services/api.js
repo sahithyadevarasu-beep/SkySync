@@ -1,6 +1,25 @@
+
 const TOKEN_KEY = 'skysync_jwt_token';
 const USER_KEY = 'skysync_user_profile';
 
+// Common response handler
+const handleResponse = async (res, defaultMessage = 'Something went wrong') => {
+  let json;
+
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error('Invalid server response. Please try again.');
+  }
+
+  if (!res.ok) {
+    throw new Error(json.message || defaultMessage);
+  }
+
+  return json;
+};
+
+// Authentication storage
 export const getAuthToken = () => {
   try {
     return localStorage.getItem(TOKEN_KEY);
@@ -23,7 +42,7 @@ export const setAuthSession = (token, user) => {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   } catch (e) {
-    console.error('Failed to save auth to localStorage:', e);
+    console.error('Failed to save auth session:', e);
   }
 };
 
@@ -40,12 +59,15 @@ const getHeaders = (includeAuth = false) => {
   const headers = {
     'Content-Type': 'application/json',
   };
+
   if (includeAuth) {
     const token = getAuthToken();
+
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
     }
   }
+
   return headers;
 };
 
@@ -56,11 +78,8 @@ export const registerUser = async (data) => {
     headers: getHeaders(),
     body: JSON.stringify(data),
   });
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message || 'Registration failed');
-  }
-  return json;
+
+  return handleResponse(res, 'Registration failed');
 };
 
 export const loginUser = async (credentials) => {
@@ -69,27 +88,27 @@ export const loginUser = async (credentials) => {
     headers: getHeaders(),
     body: JSON.stringify(credentials),
   });
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message || 'Login failed');
-  }
-  return json;
+
+  return handleResponse(res, 'Login failed');
 };
 
 export const fetchCurrentUser = async () => {
   const token = getAuthToken();
+
   if (!token) return null;
 
   try {
     const res = await fetch('/api/auth/me', {
       headers: getHeaders(true),
     });
+
     if (!res.ok) {
       if (res.status === 401) {
         clearAuthSession();
       }
       return null;
     }
+
     const json = await res.json();
     return json.user;
   } catch {
@@ -100,47 +119,48 @@ export const fetchCurrentUser = async () => {
 // Weather Endpoints
 export const fetchCurrentWeatherByCoords = async (lat, lon) => {
   const res = await fetch(`/api/weather/current?lat=${lat}&lon=${lon}`);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message || 'Failed to fetch coordinates weather');
-  }
+  const json = await handleResponse(res, 'Failed to fetch weather');
   return json.data;
 };
 
 export const fetchWeatherByCity = async (city) => {
-  const res = await fetch(`/api/weather/city?city=${encodeURIComponent(city)}`);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message || `Failed to fetch weather for ${city}`);
-  }
+  const res = await fetch(
+    `/api/weather/city?city=${encodeURIComponent(city)}`
+  );
+
+  const json = await handleResponse(res, `Failed to fetch weather for ${city}`);
   return json.data;
 };
 
 export const fetchForecast = async (options = {}) => {
   let url = '/api/weather/forecast';
+
   if (options.lat !== undefined && options.lon !== undefined) {
     url += `?lat=${options.lat}&lon=${options.lon}`;
   } else if (options.city) {
     url += `?city=${encodeURIComponent(options.city)}`;
   }
+
   const res = await fetch(url);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message || 'Failed to fetch weather forecast');
-  }
+  const json = await handleResponse(res, 'Failed to fetch weather forecast');
+
   return json.data;
 };
 
 // Search History Endpoints
 export const fetchSearchHistory = async () => {
-  const res = await fetch('/api/history', {
-    headers: getHeaders(true),
-  });
-  const json = await res.json();
-  if (!res.ok) {
+  try {
+    const res = await fetch('/api/history', {
+      headers: getHeaders(true),
+    });
+
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return json.data || [];
+  } catch {
     return [];
   }
-  return json.data || [];
 };
 
 export const saveSearchHistory = async (city, country = '') => {
@@ -150,7 +170,9 @@ export const saveSearchHistory = async (city, country = '') => {
       headers: getHeaders(true),
       body: JSON.stringify({ city, country }),
     });
+
     if (!res.ok) return null;
+
     const json = await res.json();
     return json.data;
   } catch {
@@ -164,6 +186,7 @@ export const deleteSearchHistoryItem = async (id) => {
       method: 'DELETE',
       headers: getHeaders(true),
     });
+
     return res.ok;
   } catch {
     return false;
@@ -176,27 +199,32 @@ export const clearAllSearchHistory = async () => {
       method: 'DELETE',
       headers: getHeaders(true),
     });
+
     return res.ok;
   } catch {
     return false;
   }
 };
 
-// System Health & Configuration Endpoints
+// System Status
 export const fetchSystemStatus = async () => {
   const res = await fetch('/api/status');
-  return res.json();
+  return handleResponse(res, 'Failed to fetch system status');
 };
 
+// Runtime Configuration (local development only)
 export const submitRuntimeConfig = async (mongoUri, weatherKey) => {
+  if (!import.meta.env.DEV) {
+    throw new Error(
+      'Configuration changes are disabled on the public website.'
+    );
+  }
+
   const res = await fetch('/api/config/test-connection', {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ mongoUri, weatherKey }),
   });
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message || 'Failed to apply configuration');
-  }
-  return json;
+
+  return handleResponse(res, 'Failed to apply configuration');
 };

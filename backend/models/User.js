@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
@@ -11,6 +12,7 @@ const UserSchema = new Schema(
       minlength: [2, 'Name must be at least 2 characters long'],
       maxlength: [50, 'Name cannot exceed 50 characters'],
     },
+
     email: {
       type: String,
       required: [true, 'Please provide an email address'],
@@ -22,11 +24,13 @@ const UserSchema = new Schema(
         'Please provide a valid email address',
       ],
     },
+
     password: {
       type: String,
       required: [true, 'Please provide a password'],
       minlength: [6, 'Password must be at least 6 characters long'],
     },
+
     createdAt: {
       type: Date,
       default: Date.now,
@@ -37,5 +41,5 @@ const UserSchema = new Schema(
   }
 );
 
-// Prevent re-compiling model in development hot-reloads
-export const User = mongoose.models.User || mongoose.model('User', UserSchema);
+export const User =
+  mongoose.models.User || mongoose.model('User', UserSchema);
